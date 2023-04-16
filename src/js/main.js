@@ -154,7 +154,6 @@ const initjs = {
                 }
             }).catch(err => {
                 alert("Failed To Get Your Root Document Path!  || Error : " + err)
-
             })
         } else {
             this.getCurrentFolder()
@@ -173,29 +172,37 @@ const initjs = {
                 name: "Create new File",
             })
         }
+        // Open Modal To Upload Files
+        document.querySelector(`[data-action="upload_files"]`).onclick = () => {
+            this.hideAllMenusAndModal()
+            document.getElementById("modal-f").innerHTML = components.CreateuploadModal(this.currentPath)
+        }
         // Save file
         document.addEventListener('keydown', e => {
             if (e.ctrlKey && e.key === 's') {
                 // Prevent the Save dialog to open
                 e.preventDefault();
-                if (this.selectedFile) {
-
-                    mydb.putFile(this.currentPath + "/" + this.selectedFile.name, editor.getValue()).then(res => {
-                        if (res.status === 200) {
-                            alert("File Saved")
-
-                        }
-                    }).catch(err => {
-                        alert("Error saving file: " + err);
-                    });
-                } else {
-                    alert("No File Selected !")
-
-                }
+                this.saveCurrentFile()
             }
         });
     },
-    getCurrentFolder: function () {
+    saveCurrentFile(){
+        if (this.selectedFile) {
+
+            mydb.putFile(this.currentPath + "/" + this.selectedFile.name, editor.getValue()).then(res => {
+                if (res.status === 200) {
+                    alert("File Saved")
+
+                }
+            }).catch(err => {
+                alert("Error saving file: " + err);
+            });
+        } else {
+            alert("No File Selected !")
+
+        }
+    },
+    getCurrentFolder() {
         //Loads the currentPath Directory
         mydb.getFolder(this.currentPath).then(res => {
             if (res.status === 200) {
@@ -208,11 +215,12 @@ const initjs = {
                 alert("Failed To Load Files From Directory :" + this.currentPath)
             }
         }).catch(err => {
-            alert("Failed To Load Files From Directory :" + this.currentPath + " || Error : " + err)
+            console.error("Failed To Load Files From Directory :" + this.currentPath + " || Error : " + err)
+            // alert("Failed To Load Files From Directory :" + this.currentPath + " || Error : " + err)
 
         })
     },
-    loadSideBar: function () {
+    loadSideBar() {
         const ul = document.querySelector(".menu-root")
         ul.innerHTML = ""
         this.files.forEach(item => {
@@ -225,7 +233,7 @@ const initjs = {
         ${this.files.length} <span data-lang="folders" class="breadcrumbs-info-type">files/Folder</span>
         `
     },
-    loadFiles: function () {
+    loadFiles() {
         this.updateBreadCrumbs();
         let file = document.getElementById("files")
         file.innerHTML = ''
@@ -237,7 +245,7 @@ const initjs = {
                     file.innerHTML += components.imageCard(item);
                 } else if (this.isVideo(item.ext)) {
                     file.innerHTML += components.videocard(item);
-                } else if (["csv", "xlsx"].includes(item.ext)) {
+                } else if (["csv", "xlsx" , "xls"].includes(item.ext)) {
                     file.innerHTML += components.csvCard(item);
                 } else if (["pdf"].includes(item.ext)) {
                     file.innerHTML += components.pdfCard(item);
@@ -245,7 +253,7 @@ const initjs = {
                     file.innerHTML += components.docCard(item);
                 } else if (["zip", "tar", "tar.gz", "rar"].includes(item.ext)) {
                     file.innerHTML += components.zipCard(item);
-                } else if (["php", "html", "css", "js", "json", "ts", "yml", "rb", "less", "py", "c", "cpp", "csharp", "java", "xml", "xhtml", "sass", "sql", "jsx", "blade.php"].includes(item.ext)) {
+                } else if (["php", "html", "css", "js", "json", "ts", "yml", "rb", "less", "py", "c", "cpp", "csharp", "java", "xml", "xhtml", "sass", "sql", "jsx", "blade.php" , "kt"].includes(item.ext)) {
                     file.innerHTML += components.codeCard(item);
                 } else if (["mp3", "ogg", "flac", "m4a", "wav"].includes(item.ext)) {
                     file.innerHTML += components.audioCard(item);
@@ -395,9 +403,7 @@ const initjs = {
             }
 
         })
-        document.querySelector("#upid").onclick = () => {
-            document.querySelector("#upid_input").click();
-        }
+
 
         setTimeout(() => {
             document.querySelectorAll("video.playvideo").forEach(vid => {
@@ -462,112 +468,6 @@ const initjs = {
                 alert(res.data)
             }
         })
-    },
-    uploadFile: function () {
-        // The progress bar dynamically increases
-        function Progress(num) {
-            console.log(num + '%')
-            //    var jd = document.getElementById('jd');
-            //    jd.style.cssText = 'width:' + num + '%';
-            //    jd.innerHTML = num + '%';
-            //    document.getElementById("message").innerText = num + '%';
-        }
-
-        const p = this.currentPath
-
-        $.fcup({
-
-            upId: 'upid', //Upload the id of the dom
-
-            upShardSize: '3', //Slice size, (maximum per upload) in unit M, default 3M
-
-            upMaxSize: '9216', //Upload file size, unit M, no setting no limit supported 9GB
-
-            upUrl: './src/php/file.php?p=' + p, //File upload interface
-
-
-            //The interface returns a result callback, which is judged according to the
-            // data returned by the result, and can return a string or json for judgment processing
-            upCallBack: function (res, id) {
-
-                // 状态
-                var status = res.status;
-                // 信息
-                var msg = res.message;
-                // url
-                var url = res.url + "?" + Math.random();
-
-                // Already done
-                if (status == 2) {
-                    // alert(msg);
-                    console.log("done")
-                    document.getElementById("f" + id).innerText = "Done";
-                }
-
-                // still uploading
-                if (status == 1) {
-                    console.log(msg);
-                }
-
-                // The interface returns an error
-                if (status == 0) {
-                    // Stop uploading trigger $.upStop function
-                    $.upErrorMsg(msg);
-                    console.log(msg)
-                }
-
-                // 判断是否上传过了
-                if (status == 3) {
-                    Progress(100);
-                    jQuery.upErrorMsg(msg);
-                }
-            },
-
-            // 上传过程监听，可以根据当前执行的进度值来改变进度条
-            upEvent: function (num, id) {
-                // num的值是上传的进度，从1到100
-                Progress(num);
-                document.getElementById("f" + id).innerText = num + "%";
-
-            },
-
-            // 发生错误后的处理
-            upStop: function (errmsg) {
-                // 这里只是简单的alert一下结果，可以使用其它的弹窗提醒插件
-                alert(errmsg);
-                //   document.getElementById("message").innerText = "Uploading Failed .... " + errmsg;
-            },
-
-            // 开始上传前的处理和回调,比如进度条初始化等
-            upStart: function () {
-                Progress(0);
-                //   document.getElementById("message").innerText = "Uploading Started ....";
-            },
-            listfiles: function (files) {
-                if (files.length > 0) {
-                    document.getElementById("filesbdy").innerHTML = ""
-                    document.querySelector(".table").style.display = ""
-                }
-                for (let i = 0; i < files.length; i++) {
-                    const element = files[i];
-                    document.getElementById("filesbdy").innerHTML += `
-                      <tr>
-                    <th scope="row">${i + 1}</th>
-                    <td>${element.name}</td>
-                    <td>${humanFileSize(element.size)}</td>
-                    <td id="f${element.size}">0%</td>
-                  </tr>
-                      `
-
-                }
-            }
-
-        });
-        $.fcup_addFileInput()
-        function humanFileSize(size) {
-            var i = size == 0 ? 0 : Math.floor(Math.log(size) / Math.log(1024));
-            return (size / Math.pow(1024, i)).toFixed(2) * 1 + ' ' + ['B', 'kB', 'MB', 'GB', 'TB'][i];
-        }
     },
     openFileInfoModal: function (elem) {
         let file = JSON.parse(elem.getAttribute("data-item"));
