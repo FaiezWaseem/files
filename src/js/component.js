@@ -560,14 +560,14 @@ let components = {
   },
   modalFilePreview: (selectedFile) => {
     function fileExtensions(s){return["txt","css","ini","conf","log","htaccess","passwd","ftpquota","sql","js","json","sh","config","php","php4","php5","phps","phtml","htm","html","shtml","xhtml","xml","xsl","m3u","m3u8","pls","cue","eml","msg","csv","bat","twig","tpl","md","gitignore","less","sass","scss","c","cpp","cs","py","map","lock","dtd","svg","scss","asp","aspx","asx","asmx","ashx","jsx","jsp","jspx","cfm","cgi","yml","yaml","toml"].includes(s)}
-    function videoExtensions(s){return["mp4","mov"].includes(s)}
+    function videoExtensions(s){return["mp4","mov", "flv"].includes(s)}
     function imageExtensions(s){return["png","jepg","gif","webp","ico","JPEG","JPG","PNG"].includes(s)}
     if (!selectedFile.is_dir) {
       if(fileExtensions(selectedFile.ext)){
         initjs.readfile(selectedFile)
       }else if(videoExtensions(selectedFile.ext)){
         document.querySelector(".modal-preview-dir").innerHTML = `
-        <video src="${window.location.href + selectedFile.download_url.slice(2)}" controls style="width:100%;"></video>
+        <video src="./src/php/Stream.php?path=${selectedFile.path}" controls style="width:100%;"></video>
         `
       }else if(imageExtensions(selectedFile.ext)){
         document.querySelector(".modal-preview-dir").innerHTML = `

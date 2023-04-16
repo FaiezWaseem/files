@@ -185,7 +185,9 @@ const initjs = {
                             alert("File Saved")
 
                         }
-                    })
+                    }).catch(err => {
+                        alert("Error saving file: " + err);
+                    });
                 } else {
                     alert("No File Selected !")
 
@@ -235,19 +237,19 @@ const initjs = {
                     file.innerHTML += components.imageCard(item);
                 } else if (this.isVideo(item.ext)) {
                     file.innerHTML += components.videocard(item);
-                }else if (["csv","xlsx"].includes(item.ext)) {
+                } else if (["csv", "xlsx"].includes(item.ext)) {
                     file.innerHTML += components.csvCard(item);
-                }else if (["pdf"].includes(item.ext)) {
+                } else if (["pdf"].includes(item.ext)) {
                     file.innerHTML += components.pdfCard(item);
-                }else if (["doc","docx","odt"].includes(item.ext)) {
+                } else if (["doc", "docx", "odt"].includes(item.ext)) {
                     file.innerHTML += components.docCard(item);
-                }else if (["zip","tar","tar.gz","rar"].includes(item.ext)) {
+                } else if (["zip", "tar", "tar.gz", "rar"].includes(item.ext)) {
                     file.innerHTML += components.zipCard(item);
-                }else if (["php","html","css","js","json","ts","yml","rb","less","py","c","cpp","csharp","java","xml","xhtml","sass","sql","jsx","blade.php"].includes(item.ext)) {
+                } else if (["php", "html", "css", "js", "json", "ts", "yml", "rb", "less", "py", "c", "cpp", "csharp", "java", "xml", "xhtml", "sass", "sql", "jsx", "blade.php"].includes(item.ext)) {
                     file.innerHTML += components.codeCard(item);
-                }else if (["mp3","ogg","flac","m4a","wav"].includes(item.ext)) {
+                } else if (["mp3", "ogg", "flac", "m4a", "wav"].includes(item.ext)) {
                     file.innerHTML += components.audioCard(item);
-                }  else {
+                } else {
                     console.log(item.ext)
                     file.innerHTML += components.fileCard(item);
                 }
@@ -299,7 +301,7 @@ const initjs = {
         return images.includes(ext)
     },
     isVideo: function (ext) {
-        const videos = ["mp4", "mov","flv","3gp","mkv"]
+        const videos = ["mp4", "mov", "flv", "3gp", "mkv"]
         return videos.includes(ext)
 
     },
@@ -402,9 +404,9 @@ const initjs = {
                 vid.src = vid.getAttribute("play-src")
                 vid.load()
                 vid.play()
-                setTimeout(()=>{
+                setTimeout(() => {
                     vid.pause()
-                },1000)
+                }, 1000)
             })
         }, 3000)
     },
