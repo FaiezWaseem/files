@@ -1,9 +1,5 @@
 <?php
-// add extension
-// Example 
-//  $files_not_allowed=array("php","exe");
-$files_not_allowed=array("docx");
-
+ 
 // Set up cross-domain headers
 header('Access-Control-Allow-Origin:*');
 
@@ -49,9 +45,6 @@ $info = pathinfo($name);
 // Obtain the file suffix
 $ext = isset($info['extension'])?$info['extension']:'';
 
-if(!array_search($ext,$files_not_allowed)){
-  jsonMsg(0,'Cant Upload This File , Server Does not Allow');
-}
 
 // In actual use, md5 is used to name the file, which can reduce conflicts
 
@@ -100,4 +93,3 @@ if ($file['error'] == 0) {
     jsonMsg(0,'No files were uploaded');
 }
  
-?>

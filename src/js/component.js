@@ -124,7 +124,7 @@ let components = {
   sideBarFolder: (item) => {
     return `
       <li data-level="1" data-path="${item.name}" onclick='initjs.folderClicked(${JSON.stringify(item)})' class="menu-li">
-      <a href="#" class="menu-a">
+      <a  class="menu-a">
         <svg viewBox="0 0 24 24" class="menu-icon menu-icon-folder">
           <path class="svg-path-folder" d="M4 5v14h16V7h-8.414l-2-2H4zm8.414 0H21a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h7.414l2 2z"></path>
         </svg>${item.name} </a>
@@ -574,7 +574,29 @@ let components = {
         <h2 class="swal2-title" id="swal2-title" style="display: block;">Upload Files</h2>
         <div class="swal2-html-container" id="swal2-html-container" style="display: block;"><span
                 class="swal-files-path">
-       <iframe src="./src/~upload/?p=${item}" >
+                <div class="_container">
+                <div class="progress">
+                   <div class="progress-bar" id="jd" role="progressbar" style="width: 0%;">0%</div>
+                </div>
+                <div style="text-align: center;">
+                   <span>Drag & Drop or</span>
+                   <button type="button" class="btn btn-success" id="upid">Click To Upload <span id="message"></span></button>
+                   
+                </div>
+                <table class="table">
+                   <thead>
+                      <tr>
+                         <th scope="col">#</th>
+                         <th scope="col">Name</th>
+                         <th scope="col">Size</th>
+                         <th scope="col">Progress</th>
+                      </tr>
+                   </thead>
+                   <tbody id="filesbdy">
+          
+                   </tbody>
+                </table>
+             </div>
         <div class="swal2-actions" style="display: flex;">
             <div class="swal2-loader"></div><button type="button" class="swal2-confirm swal2-styled" aria-label=""
                 style="display: inline-block;" onclick='initjs.createFile()'>OK</button><button type="button" class="swal2-deny swal2-styled"

@@ -6,6 +6,34 @@ var isOpen = false;
 const folderAction = document.getElementById("folder-actions");
 const contextmenu = document.getElementById("contextmenu")
 
+var elem = document.documentElement;
+var isFullScreen = false
+/* View in fullscreen */
+function openFullscreen() {
+if(isFullScreen){
+    closeFullscreen()
+    isFullScreen = false;
+    return;
+}
+  isFullScreen = true;
+    if (elem.requestFullscreen) {
+    elem.requestFullscreen();
+  } else if (elem.webkitRequestFullscreen) { /* Safari */
+    elem.webkitRequestFullscreen();
+  } else if (elem.msRequestFullscreen) { /* IE11 */
+    elem.msRequestFullscreen();
+  }
+  return ;
+}
+function closeFullscreen() {
+    if (document.exitFullscreen) {
+      document.exitFullscreen();
+    } else if (document.webkitExitFullscreen) { /* Safari */
+      document.webkitExitFullscreen();
+    } else if (document.msExitFullscreen) { /* IE11 */
+      document.msExitFullscreen();
+    }
+  }
 
 // SideBar 
 const toggleSideBar = function () {
@@ -144,15 +172,20 @@ const initjs = {
     init: function () {
         // If no roothpath is defined will fetch from server
         if (this.rootPath === null) {
+
+            this.setLoader(true)
             mydb.rootPath().then(res => {
                 if (res.status === 200) {
                     this.currentPath = res.data;
                     this.rootPath = res.data;
                     this.getCurrentFolder()
+                    this.setLoader(false)
                 } else {
+                    this.setLoader(false)
                     alert("Failed To Get Your Root Document Path")
                 }
             }).catch(err => {
+                this.setLoader(false)
                 alert("Failed To Get Your Root Document Path!  || Error : " + err)
             })
         } else {
@@ -176,6 +209,19 @@ const initjs = {
         document.querySelector(`[data-action="upload_files"]`).onclick = () => {
             this.hideAllMenusAndModal()
             document.getElementById("modal-f").innerHTML = components.CreateuploadModal(this.currentPath)
+
+            let btn = document.getElementById("upid");
+            btn.addEventListener("click", function () {
+               let input = document.createElement("input")
+               input.type = "file";
+               input.multiple = true;
+               input.id = "id_" + Math.floor((Math.random() * 10) + 1)
+               input.onchange = (e) => {
+                initjs.upload(input.files)
+               }
+      
+               input.click()
+            })
         }
         // Save file
         document.addEventListener('keydown', e => {
@@ -185,8 +231,37 @@ const initjs = {
                 this.saveCurrentFile()
             }
         });
+        const dropArea = document.body;
+        dropArea.addEventListener("dragover", (event) => {
+            event.preventDefault(); //preventing from default behaviour
+            document.body.style.border = "4px dashed green"
+         });
+         dropArea.addEventListener("dragleave", (event) => {
+            console.log(event)
+            document.body.style.border = "0px solid green"
+         });
+         dropArea.addEventListener("drop", (event) => {
+            event.preventDefault(); //preventing from default behaviour
+            document.body.style.border = "0px solid green"
+            this.hideAllMenusAndModal()
+            document.getElementById("modal-f").innerHTML = components.CreateuploadModal(this.currentPath)
+            let files = event.dataTransfer.files;
+            this.upload(files)
+            let btn = document.getElementById("upid");
+            btn.addEventListener("click", function () {
+               let input = document.createElement("input")
+               input.type = "file";
+               input.multiple = true;
+               input.id = "id_" + Math.floor((Math.random() * 10) + 1)
+               input.onchange = (e) => {
+                  initjs.upload(input.files)
+               }
+      
+               input.click()
+            })
+         });
     },
-    saveCurrentFile(){
+    saveCurrentFile() {
         if (this.selectedFile) {
 
             mydb.putFile(this.currentPath + "/" + this.selectedFile.name, editor.getValue()).then(res => {
@@ -204,17 +279,21 @@ const initjs = {
     },
     getCurrentFolder() {
         //Loads the currentPath Directory
+        this.setLoader(true)
         mydb.getFolder(this.currentPath).then(res => {
             if (res.status === 200) {
                 this.files = res.data;
                 this.loadSideBar();
                 this.loadFiles();
                 this.uploadFile();
+                this.setLoader(false)
             } else {
                 console.warn(res)
+                this.setLoader(false)
                 alert("Failed To Load Files From Directory :" + this.currentPath)
             }
         }).catch(err => {
+            this.setLoader(false)
             console.error("Failed To Load Files From Directory :" + this.currentPath + " || Error : " + err)
             // alert("Failed To Load Files From Directory :" + this.currentPath + " || Error : " + err)
 
@@ -245,7 +324,7 @@ const initjs = {
                     file.innerHTML += components.imageCard(item);
                 } else if (this.isVideo(item.ext)) {
                     file.innerHTML += components.videocard(item);
-                } else if (["csv", "xlsx" , "xls"].includes(item.ext)) {
+                } else if (["csv", "xlsx", "xls"].includes(item.ext)) {
                     file.innerHTML += components.csvCard(item);
                 } else if (["pdf"].includes(item.ext)) {
                     file.innerHTML += components.pdfCard(item);
@@ -253,7 +332,7 @@ const initjs = {
                     file.innerHTML += components.docCard(item);
                 } else if (["zip", "tar", "tar.gz", "rar"].includes(item.ext)) {
                     file.innerHTML += components.zipCard(item);
-                } else if (["php", "html", "css", "js", "json", "ts", "yml", "rb", "less", "py", "c", "cpp", "csharp", "java", "xml", "xhtml", "sass", "sql", "jsx", "blade.php" , "kt"].includes(item.ext)) {
+                } else if (["php", "html", "css", "js", "json", "ts", "yml", "rb", "less", "py", "c", "cpp", "csharp", "java", "xml", "xhtml", "sass", "sql", "jsx", "blade.php", "kt"].includes(item.ext)) {
                     file.innerHTML += components.codeCard(item);
                 } else if (["mp3", "ogg", "flac", "m4a", "wav"].includes(item.ext)) {
                     file.innerHTML += components.audioCard(item);
@@ -265,13 +344,13 @@ const initjs = {
         })
         this.onFilesLoad();
     },
-    folderClicked: function (item) {
+    folderClicked(item) {
         this.currentPath = this.currentPath + "/" + item.name;
         this.getCurrentFolder();
         this.loadSideBar();
         this.loadFiles();
     },
-    updateBreadCrumbs: function () {
+    updateBreadCrumbs() {
         let bd = document.getElementById("breadcrumbs")
         bd.innerHTML = `
      <span class="crumb">
@@ -294,7 +373,7 @@ const initjs = {
         }
 
     },
-    beadCrumbClick: function (title) {
+    beadCrumbClick(title) {
         if (title == "root") {
             this.currentPath = this.rootPath;
         } else {
@@ -304,16 +383,16 @@ const initjs = {
         this.loadSideBar();
         this.loadFiles();
     },
-    isImage: function (ext) {
+    isImage(ext) {
         const images = ["gif", "JPEG", "PNG", "png", "jpeg", "jpg", "ico", "webp"]
         return images.includes(ext)
     },
-    isVideo: function (ext) {
+    isVideo(ext) {
         const videos = ["mp4", "mov", "flv", "3gp", "mkv"]
         return videos.includes(ext)
 
     },
-    onFilesLoad: function () {
+    onFilesLoad() {
         // create an Event listenter for Files Context Menu Background
         document.getElementById("modal-bg").addEventListener("click", (e) => {
             e.preventDefault();
@@ -416,7 +495,7 @@ const initjs = {
             })
         }, 3000)
     },
-    clickedRename: function (name) {
+    clickedRename(name) {
         const renamefileNewName = document.getElementById("fileRename").value;
         const renamefileOldName = name;
         const renameFileNewPath = this.currentPath + "/" + renamefileNewName;
@@ -435,7 +514,7 @@ const initjs = {
             }
         })
     },
-    createFolder: function () {
+    createFolder() {
         const folderName = document.getElementById("cFolder").value;
         mydb.createFolder(folderName, this.currentPath).then(res => {
             if (res.status === 200) {
@@ -452,7 +531,7 @@ const initjs = {
 
         })
     },
-    createFile: function () {
+    createFile() {
         const fileName = document.getElementById("cFolder").value;
         console.log(this.currentPath + "/" + fileName)
         mydb.createFile(this.currentPath + "/" + fileName, "").then(res => {
@@ -469,7 +548,7 @@ const initjs = {
             }
         })
     },
-    openFileInfoModal: function (elem) {
+    openFileInfoModal(elem) {
         let file = JSON.parse(elem.getAttribute("data-item"));
         this.selectedFile = file; // updating the selecting file
 
@@ -503,7 +582,7 @@ const initjs = {
           <path class="svg-folder-bg" d="M40 12H22l-4-4H8c-2.2 0-4 1.8-4 4v8h40v-4c0-2.2-1.8-4-4-4z"></path>
           <path class="svg-folder-fg" d="M40 12H8c-2.2 0-4 1.8-4 4v20c0 2.2 1.8 4 4 4h32c2.2 0 4-1.8 4-4V16c0-2.2-1.8-4-4-4z"></path>
         </svg>
-           ${this.selectedFile.ext === "" ? "directory" : this.selectedFile.ext}
+           ${this.selectedFile.ext === "" ? "directory" : this.selectedFile.ext} | ${this.selectedFile.size}
             `
         document.querySelector(".modal-info-date").innerHTML = `
             <path class="svg-path-date" d="M12,20A8,8 0 0,0 20,12A8,8 0 0,0 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22C6.47,22 2,17.5 2,12A10,10 0 0,1 12,2M12.5,7V12.25L17,14.92L16.25,16.15L11,13V7H12.5Z">
@@ -549,6 +628,7 @@ const initjs = {
     },
     readfile: function (file) {
         console.log(this.currentPath + "/" + file.name);
+        this.setLoader(true)
         mydb.getFile(this.currentPath + "/" + file.name).then(res => {
             if (res.status == 200) {
                 document.querySelector(".modal-preview-dir").style.maxHeight = "300px"
@@ -556,11 +636,120 @@ const initjs = {
                 document.querySelector(".modal-preview-dir").innerHTML = `
                 <div id="editor" style="height: 250px; width: 100%;">
                 </div>
+                <button type="button" class="btn btn-1 is-icon" onclick="initjs.saveCurrentFile()" data-tooltip="save" data-lang="save"><svg viewBox="0 0 24 24" class="svg-icon svg-save_edit"><path class="svg-path-save_edit" d="M10,19L10.14,18.86C8.9,18.5 8,17.36 8,16A3,3 0 0,1 11,13C12.36,13 13.5,13.9 13.86,15.14L20,9V7L16,3H4C2.89,3 2,3.9 2,5V19A2,2 0 0,0 4,21H10V19M4,5H14V9H4V5M20.04,12.13C19.9,12.13 19.76,12.19 19.65,12.3L18.65,13.3L20.7,15.35L21.7,14.35C21.92,14.14 21.92,13.79 21.7,13.58L20.42,12.3C20.31,12.19 20.18,12.13 20.04,12.13M18.07,13.88L12,19.94V22H14.06L20.12,15.93L18.07,13.88Z"></path></svg></button>
+                <button type="button" class="btn btn-1 is-icon" onclick="initjs.copyContent()" data-tooltip="copy text" data-lang="copy text"><svg viewBox="0 0 24 24" class="svg-icon svg-clipboard"><path class="svg-path-clipboard" d="M19,3H14.82C14.4,1.84 13.3,1 12,1C10.7,1 9.6,1.84 9.18,3H5A2,2 0 0,0 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5A2,2 0 0,0 19,3M12,3A1,1 0 0,1 13,4A1,1 0 0,1 12,5A1,1 0 0,1 11,4A1,1 0 0,1 12,3M7,7H17V5H19V19H5V5H7V7M7.5,13.5L9,12L11,14L15.5,9.5L17,11L11,17L7.5,13.5Z"></path></svg></button>
+                
                 `
                 editorLoad(res.data)
+                this.setLoader(false)
             }
-        })
+        }).catch(err => this.setLoader(false))
     },
+    copyContent() {
+        try {
+            const text = editor.getValue();
+            navigator.clipboard.writeText(text);
+            alert('Content copied to clipboard');
+        } catch (err) {
+            console.error('Failed to copy: ', err);
+        }
+    },
+    setLoader(show = true) {
+        document.querySelector(".loader").style.display = show ? "flex" : "none"
+    },
+    upload(files) {
+        function Progress(num) {
+            var jd = document.getElementById('jd');
+            jd.style.cssText = 'width:' + num + '%';
+            jd.innerHTML = num + '%';
+            document.getElementById("message").innerText = num + '%';
+         }
+        $.fcup({
+
+           files,
+           upId: 'upid', //Upload the id of the dom
+
+           upShardSize: '2', //Slice size, (maximum per upload) in unit M, default 3M
+
+           upMaxSize: '9216', //Upload file size, unit M, no setting no limit supported 9GB
+
+           upUrl: './src/php/file.php?p=' + this.currentPath, //File upload interface
+
+           //The interface returns a result callback, which is judged according to the
+           // data returned by the result, and can return a string or json for judgment processing
+           upCallBack: function (res, id) {
+
+              // 状态
+              var status = res.status;
+              // 信息
+              var msg = res.message;
+              // url
+              var url = res.url + "?" + Math.random();
+
+              // Already done
+              if (status == 2) {
+                 // alert(msg);
+                 document.getElementById("f" + id).innerText = "Done";
+              }
+
+              // still uploading
+              if (status == 1) {
+                 console.log(msg);
+              }
+
+              // The interface returns an error
+              if (status == 0) {
+                 // Stop uploading trigger $.upStop function
+                 $.upErrorMsg(msg);
+              }
+
+              // 判断是否上传过了
+              if (status == 3) {
+                 Progress(100);
+                 jQuery.upErrorMsg(msg);
+              }
+           },
+
+           // 上传过程监听，可以根据当前执行的进度值来改变进度条
+           upEvent: function (num, id) {
+              // num的值是上传的进度，从1到100
+              Progress(num);
+              document.getElementById("f" + id).innerText = num + "%";
+           },
+
+           // 发生错误后的处理
+           upStop: function (errmsg) {
+              // 这里只是简单的alert一下结果，可以使用其它的弹窗提醒插件
+              alert(errmsg);
+              document.getElementById("message").innerText = "Uploading Failed .... " + errmsg;
+           },
+
+           // 开始上传前的处理和回调,比如进度条初始化等
+           upStart: function () {
+              Progress(0);
+              document.getElementById("message").innerText = "Uploading Started ....";
+           },
+           listfiles: function (files) {
+              for (let i = 0; i < files.length; i++) {
+                 const element = files[i];
+                 document.getElementById("filesbdy").innerHTML += `
+                      <tr>
+                      <th scope="row">${i + 1}</th>
+                      <td>${element.name}</td>
+                      <td>${humanFileSize(element.size)}</td>
+                      <td id="f${element.size}">0%</td>
+                      </tr>
+                        `
+
+              }
+           }
+
+        });
+        function humanFileSize(size) {
+           var i = size == 0 ? 0 : Math.floor(Math.log(size) / Math.log(1024));
+           return (size / Math.pow(1024, i)).toFixed(2) * 1 + ' ' + ['B', 'kB', 'MB', 'GB', 'TB'][i];
+        }
+     }
 }
 
 
