@@ -88,7 +88,7 @@ let components = {
         `
   },
   videocard: (item) => {
-    
+
     return `
     <a data-name="${item.name}" target="_blank" class="files-a files-a-img files-a-loaded"
     style="--ratio:1.5; opacity: 1;"><svg viewBox="0 0 24 24" class="svg-icon svg-play"
@@ -96,7 +96,7 @@ let components = {
         <path class="svg-path-play" d="M8,5.14V19.14L19,12.14L8,5.14Z"></path>
     </svg><video class="files-img playvideo"
         data-src="${item.download_url}"
-        play-src="${item.download_url.replace("dw","vid")}"
+        play-src="${item.download_url.replace("dw", "vid")}"
         width="480" height="320"
         src=""
         muted
@@ -513,6 +513,59 @@ let components = {
 </div>
     `
   },
+  CreateLoginmodal: (item) => {
+    return `
+    <div class="swal2-container swal2-center swal2-backdrop-show" style="overflow-y: auto;">
+    <div aria-labelledby="swal2-title" aria-describedby="swal2-html-container"
+        class="swal2-popup swal2-modal swal2-show" tabindex="-1" role="dialog" aria-live="assertive" aria-modal="true"
+        style="display: grid;"><button type="button" class="swal2-close" aria-label="Close this dialog"
+            style="display: flex;" onclick='document.getElementById("modal-f").innerHTML = "";'><svg viewBox="0 0 24 24" class="svg-icon svg-close">
+                <path class="svg-path-close"
+                    d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z">
+                </path>
+            </svg></button>
+        <ul class="swal2-progress-steps" style="display: none;"></ul>
+        <div class="swal2-icon" style="display: none;"></div><img class="swal2-image" style="display: none;">
+        <h2 class="swal2-title" id="swal2-title" style="display: block;">Login</h2>
+        <div class="swal2-html-container" id="swal2-html-container" style="display: block;"><span
+                class="swal-files-path"><span
+                    class="swal-files-name swal-files-has-path">${item?.name}</span></span></div>
+                    <input maxlength="127"
+            autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" class="swal2-input"
+            placeholder="Username" type="text" style="display: flex;"  id='username' >
+                    <input maxlength="127"
+            autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" class="swal2-input"
+            placeholder="Password" type="text" style="display: flex;"  id='password' >
+            <input type="file" maxlength="127"
+            autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" class="swal2-file"
+            style="display: none;">
+        <div class="swal2-range" style="display: none;">
+        <input type="range" maxlength="127" autocapitalize="off"
+                autocorrect="off" autocomplete="off" spellcheck="false">
+                <output></output>
+                </div><select maxlength="127"
+            autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" class="swal2-select"
+            style="display: none;"></select>
+        <div class="swal2-radio" style="display: none;"></div><label for="swal2-checkbox" class="swal2-checkbox"
+            style="display: none;"><input type="checkbox" maxlength="127" autocapitalize="off" autocorrect="off"
+                autocomplete="off" spellcheck="false"><span class="swal2-label"></span></label><textarea maxlength="127"
+            autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" class="swal2-textarea"
+            style="display: none;"></textarea>
+        <div class="swal2-validation-message" id="swal2-validation-message" style="display: none;"></div>
+        <div class="swal2-actions" style="display: flex;">
+            <div class="swal2-loader"></div><button type="button" class="swal2-confirm swal2-styled" aria-label=""
+                style="display: inline-block;" onclick='initjs.login()'>OK</button><button type="button" class="swal2-deny swal2-styled"
+                aria-label="" style="display: none;">No</button><button type="button" class="swal2-cancel swal2-styled"
+                aria-label="" style="display: none;">Cancel</button>
+        </div>
+        <div class="swal2-footer" style="display: none;"></div>
+        <div class="swal2-timer-progress-bar-container">
+            <div class="swal2-timer-progress-bar" style="display: none;"></div>
+        </div>
+    </div>
+</div>
+    `
+  },
   CreateFilemodal: (item) => {
     return `
     <div class="swal2-container swal2-center swal2-backdrop-show" style="overflow-y: auto;">
@@ -612,22 +665,22 @@ let components = {
     `
   },
   modalFilePreview: (selectedFile) => {
-    function fileExtensions(s){return["txt","css","ini","conf","log","htaccess","passwd","ftpquota","sql","js","json","sh","config","php","php4","php5","phps","phtml","htm","html","shtml","xhtml","xml","xsl","m3u","m3u8","pls","cue","eml","msg","csv","bat","twig","tpl","md","gitignore","less","sass","scss","c","cpp","cs","py","map","lock","dtd","svg","scss","asp","aspx","asx","asmx","ashx","jsx","jsp","jspx","cfm","cgi","yml","yaml","toml"].includes(s)}
-    function videoExtensions(s){return["mp4","mov", "flv"].includes(s)}
-    function imageExtensions(s){return["png","jepg","gif","webp","ico","JPEG","JPG","PNG"].includes(s)}
+    function fileExtensions(s) { return ["txt", "css", "ini", "conf", "log", "htaccess", "passwd", "ftpquota", "sql", "js", "json", "sh", "config", "php", "php4", "php5", "phps", "phtml", "htm", "html", "shtml", "xhtml", "xml", "xsl", "m3u", "m3u8", "pls", "cue", "eml", "msg", "csv", "bat", "twig", "tpl", "md", "gitignore", "less", "sass", "scss", "c", "cpp", "cs", "py", "map", "lock", "dtd", "svg", "scss", "asp", "aspx", "asx", "asmx", "ashx", "jsx", "jsp", "jspx", "cfm", "cgi", "yml", "yaml", "toml"].includes(s) }
+    function videoExtensions(s) { return ["mp4", "mov", "flv"].includes(s) }
+    function imageExtensions(s) { return ["png", "jepg", "gif", "webp", "ico", "JPEG", "JPG", "PNG"].includes(s) }
     if (!selectedFile.is_dir) {
-      if(fileExtensions(selectedFile.ext)){
+      if (fileExtensions(selectedFile.ext)) {
         initjs.readfile(selectedFile)
-      }else if(videoExtensions(selectedFile.ext)){
+      } else if (videoExtensions(selectedFile.ext)) {
         document.querySelector(".modal-preview-dir").innerHTML = `
         <video src="./src/php/Stream.php?path=${selectedFile.path}" controls style="width:100%;"></video>
         `
-      }else if(imageExtensions(selectedFile.ext)){
+      } else if (imageExtensions(selectedFile.ext)) {
         document.querySelector(".modal-preview-dir").innerHTML = `
         <img src="${window.location.href + selectedFile.download_url.slice(2)}" style="width:100%;height : 100%;" />
         `
-      }else{
-      document.querySelector(".modal-preview-dir").innerHTML = `
+      } else {
+        document.querySelector(".modal-preview-dir").innerHTML = `
       <svg viewBox="0 0 48 48" class="svg-folder modal-svg">
       <svg viewBox="0 0 56 56" class="svg-file svg-text files-svg">
       <path class="svg-file-bg" d="M36.985,0H7.963C7.155,0,6.5,0.655,6.5,1.926V55c0,0.345,0.655,1,1.463,1h40.074 c0.808,0,1.463-0.655,1.463-1V12.978c0-0.696-0.093-0.92-0.257-1.085L37.607,0.257C37.442,0.093,37.218,0,36.985,0z"></path>
@@ -651,7 +704,7 @@ let components = {
     </svg>
     </svg>
     `
-    }
+      }
     } else {
       document.querySelector(".modal-preview-dir").innerHTML = `
       <svg viewBox="0 0 48 48" class="svg-folder modal-svg">

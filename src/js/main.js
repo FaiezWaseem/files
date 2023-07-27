@@ -10,30 +10,30 @@ var elem = document.documentElement;
 var isFullScreen = false
 /* View in fullscreen */
 function openFullscreen() {
-if(isFullScreen){
-    closeFullscreen()
-    isFullScreen = false;
-    return;
-}
-  isFullScreen = true;
+    if (isFullScreen) {
+        closeFullscreen()
+        isFullScreen = false;
+        return;
+    }
+    isFullScreen = true;
     if (elem.requestFullscreen) {
-    elem.requestFullscreen();
-  } else if (elem.webkitRequestFullscreen) { /* Safari */
-    elem.webkitRequestFullscreen();
-  } else if (elem.msRequestFullscreen) { /* IE11 */
-    elem.msRequestFullscreen();
-  }
-  return ;
+        elem.requestFullscreen();
+    } else if (elem.webkitRequestFullscreen) { /* Safari */
+        elem.webkitRequestFullscreen();
+    } else if (elem.msRequestFullscreen) { /* IE11 */
+        elem.msRequestFullscreen();
+    }
+    return;
 }
 function closeFullscreen() {
     if (document.exitFullscreen) {
-      document.exitFullscreen();
+        document.exitFullscreen();
     } else if (document.webkitExitFullscreen) { /* Safari */
-      document.webkitExitFullscreen();
+        document.webkitExitFullscreen();
     } else if (document.msExitFullscreen) { /* IE11 */
-      document.msExitFullscreen();
+        document.msExitFullscreen();
     }
-  }
+}
 
 // SideBar 
 const toggleSideBar = function () {
@@ -171,26 +171,62 @@ const initjs = {
     files: [],
     init: function () {
         // If no roothpath is defined will fetch from server
-        if (this.rootPath === null) {
-
-            this.setLoader(true)
-            mydb.rootPath().then(res => {
-                if (res.status === 200) {
-                    this.currentPath = res.data;
-                    this.rootPath = res.data;
-                    this.getCurrentFolder()
-                    this.setLoader(false)
+        mydb.isAuthRequired().then(res =>{
+            localStorage.setItem('isAuthRequired' , res.data)
+            if(res.data){
+                const Auth = this.isAuthenticated();
+                if (Auth.isAuth) {
+                    console.log(Auth.token)
+                    if (this.rootPath === null) {
+        
+                        this.setLoader(true)
+                        mydb.rootPath().then(res => {
+                            if (res.status === 200) {
+                                this.currentPath = res.data;
+                                this.rootPath = res.data;
+                                this.getCurrentFolder()
+                                this.setLoader(false)
+                            } else {
+                                this.setLoader(false)
+                                alert("Failed To Get Your Root Document Path")
+                            }
+                        }).catch(err => {
+                            this.setLoader(false)
+                            alert("Failed To Get Your Root Document Path!  || Error : " + err)
+                        })
+                    } else {
+                        this.getCurrentFolder()
+                    }
                 } else {
-                    this.setLoader(false)
-                    alert("Failed To Get Your Root Document Path")
+                    document.getElementById("modal-f").innerHTML = components.CreateLoginmodal({
+                        name: "Authentication",
+                    })
                 }
-            }).catch(err => {
-                this.setLoader(false)
-                alert("Failed To Get Your Root Document Path!  || Error : " + err)
-            })
-        } else {
-            this.getCurrentFolder()
-        }
+            }else{
+                localStorage.clear()
+                if (this.rootPath === null) {
+        
+                    this.setLoader(true)
+                    mydb.rootPath().then(res => {
+                        if (res.status === 200) {
+                            this.currentPath = res.data;
+                            this.rootPath = res.data;
+                            this.getCurrentFolder()
+                            this.setLoader(false)
+                        } else {
+                            this.setLoader(false)
+                            alert("Failed To Get Your Root Document Path")
+                        }
+                    }).catch(err => {
+                        this.setLoader(false)
+                        alert("Failed To Get Your Root Document Path!  || Error : " + err)
+                    })
+                } else {
+                    this.getCurrentFolder()
+                }
+            }
+        })
+     
         // Open Modal To create new Folder
         document.querySelector(`[data-action="new_folder"]`).onclick = () => {
             this.hideAllMenusAndModal()
@@ -212,15 +248,15 @@ const initjs = {
 
             let btn = document.getElementById("upid");
             btn.addEventListener("click", function () {
-               let input = document.createElement("input")
-               input.type = "file";
-               input.multiple = true;
-               input.id = "id_" + Math.floor((Math.random() * 10) + 1)
-               input.onchange = (e) => {
-                initjs.upload(input.files)
-               }
-      
-               input.click()
+                let input = document.createElement("input")
+                input.type = "file";
+                input.multiple = true;
+                input.id = "id_" + Math.floor((Math.random() * 10) + 1)
+                input.onchange = (e) => {
+                    initjs.upload(input.files)
+                }
+
+                input.click()
             })
         }
         // Save file
@@ -235,12 +271,12 @@ const initjs = {
         dropArea.addEventListener("dragover", (event) => {
             event.preventDefault(); //preventing from default behaviour
             document.body.style.border = "4px dashed green"
-         });
-         dropArea.addEventListener("dragleave", (event) => {
+        });
+        dropArea.addEventListener("dragleave", (event) => {
             console.log(event)
             document.body.style.border = "0px solid green"
-         });
-         dropArea.addEventListener("drop", (event) => {
+        });
+        dropArea.addEventListener("drop", (event) => {
             event.preventDefault(); //preventing from default behaviour
             document.body.style.border = "0px solid green"
             this.hideAllMenusAndModal()
@@ -249,17 +285,17 @@ const initjs = {
             this.upload(files)
             let btn = document.getElementById("upid");
             btn.addEventListener("click", function () {
-               let input = document.createElement("input")
-               input.type = "file";
-               input.multiple = true;
-               input.id = "id_" + Math.floor((Math.random() * 10) + 1)
-               input.onchange = (e) => {
-                  initjs.upload(input.files)
-               }
-      
-               input.click()
+                let input = document.createElement("input")
+                input.type = "file";
+                input.multiple = true;
+                input.id = "id_" + Math.floor((Math.random() * 10) + 1)
+                input.onchange = (e) => {
+                    initjs.upload(input.files)
+                }
+
+                input.click()
             })
-         });
+        });
     },
     saveCurrentFile() {
         if (this.selectedFile) {
@@ -663,76 +699,76 @@ const initjs = {
             jd.style.cssText = 'width:' + num + '%';
             jd.innerHTML = num + '%';
             document.getElementById("message").innerText = num + '%';
-         }
+        }
         $.fcup({
 
-           files,
-           upId: 'upid', //Upload the id of the dom
+            files,
+            upId: 'upid', //Upload the id of the dom
 
-           upShardSize: '2', //Slice size, (maximum per upload) in unit M, default 3M
+            upShardSize: '2', //Slice size, (maximum per upload) in unit M, default 3M
 
-           upMaxSize: '9216', //Upload file size, unit M, no setting no limit supported 9GB
+            upMaxSize: '9216', //Upload file size, unit M, no setting no limit supported 9GB
 
-           upUrl: './src/php/file.php?p=' + this.currentPath, //File upload interface
+            upUrl: './src/php/file.php?p=' + this.currentPath, //File upload interface
 
-           //The interface returns a result callback, which is judged according to the
-           // data returned by the result, and can return a string or json for judgment processing
-           upCallBack: function (res, id) {
+            //The interface returns a result callback, which is judged according to the
+            // data returned by the result, and can return a string or json for judgment processing
+            upCallBack: function (res, id) {
 
-              // 状态
-              var status = res.status;
-              // 信息
-              var msg = res.message;
-              // url
-              var url = res.url + "?" + Math.random();
+                // 状态
+                var status = res.status;
+                // 信息
+                var msg = res.message;
+                // url
+                var url = res.url + "?" + Math.random();
 
-              // Already done
-              if (status == 2) {
-                 // alert(msg);
-                 document.getElementById("f" + id).innerText = "Done";
-              }
+                // Already done
+                if (status == 2) {
+                    // alert(msg);
+                    document.getElementById("f" + id).innerText = "Done";
+                }
 
-              // still uploading
-              if (status == 1) {
-                 console.log(msg);
-              }
+                // still uploading
+                if (status == 1) {
+                    console.log(msg);
+                }
 
-              // The interface returns an error
-              if (status == 0) {
-                 // Stop uploading trigger $.upStop function
-                 $.upErrorMsg(msg);
-              }
+                // The interface returns an error
+                if (status == 0) {
+                    // Stop uploading trigger $.upStop function
+                    $.upErrorMsg(msg);
+                }
 
-              // 判断是否上传过了
-              if (status == 3) {
-                 Progress(100);
-                 jQuery.upErrorMsg(msg);
-              }
-           },
+                // 判断是否上传过了
+                if (status == 3) {
+                    Progress(100);
+                    jQuery.upErrorMsg(msg);
+                }
+            },
 
-           // 上传过程监听，可以根据当前执行的进度值来改变进度条
-           upEvent: function (num, id) {
-              // num的值是上传的进度，从1到100
-              Progress(num);
-              document.getElementById("f" + id).innerText = num + "%";
-           },
+            // 上传过程监听，可以根据当前执行的进度值来改变进度条
+            upEvent: function (num, id) {
+                // num的值是上传的进度，从1到100
+                Progress(num);
+                document.getElementById("f" + id).innerText = num + "%";
+            },
 
-           // 发生错误后的处理
-           upStop: function (errmsg) {
-              // 这里只是简单的alert一下结果，可以使用其它的弹窗提醒插件
-              alert(errmsg);
-              document.getElementById("message").innerText = "Uploading Failed .... " + errmsg;
-           },
+            // 发生错误后的处理
+            upStop: function (errmsg) {
+                // 这里只是简单的alert一下结果，可以使用其它的弹窗提醒插件
+                alert(errmsg);
+                document.getElementById("message").innerText = "Uploading Failed .... " + errmsg;
+            },
 
-           // 开始上传前的处理和回调,比如进度条初始化等
-           upStart: function () {
-              Progress(0);
-              document.getElementById("message").innerText = "Uploading Started ....";
-           },
-           listfiles: function (files) {
-              for (let i = 0; i < files.length; i++) {
-                 const element = files[i];
-                 document.getElementById("filesbdy").innerHTML += `
+            // 开始上传前的处理和回调,比如进度条初始化等
+            upStart: function () {
+                Progress(0);
+                document.getElementById("message").innerText = "Uploading Started ....";
+            },
+            listfiles: function (files) {
+                for (let i = 0; i < files.length; i++) {
+                    const element = files[i];
+                    document.getElementById("filesbdy").innerHTML += `
                       <tr>
                       <th scope="row">${i + 1}</th>
                       <td>${element.name}</td>
@@ -741,15 +777,49 @@ const initjs = {
                       </tr>
                         `
 
-              }
-           }
+                }
+            }
 
         });
         function humanFileSize(size) {
-           var i = size == 0 ? 0 : Math.floor(Math.log(size) / Math.log(1024));
-           return (size / Math.pow(1024, i)).toFixed(2) * 1 + ' ' + ['B', 'kB', 'MB', 'GB', 'TB'][i];
+            var i = size == 0 ? 0 : Math.floor(Math.log(size) / Math.log(1024));
+            return (size / Math.pow(1024, i)).toFixed(2) * 1 + ' ' + ['B', 'kB', 'MB', 'GB', 'TB'][i];
         }
-     }
+    },
+    isAuthenticated() {
+        const token = window.localStorage.getItem('token') || null;
+        if (token) {
+            return {
+                isAuth: true,
+                token,
+            };
+        }
+        return {
+            isAuth: false,
+            token: null
+        }
+
+    },
+    login() {
+        /**
+         * @type {string}
+         */
+        const username = document.getElementById('username').value;
+        /**
+        * @type {string}
+        */
+        const password = document.getElementById('password').value;
+        if (username.length > 0 && password.length > 0) {
+            mydb.login(username, password)
+                .then(res => {
+                    if (res.status === 200) {
+                        window.localStorage.setItem('token', res.data.token);
+                        document.getElementById("modal-f").innerHTML = "";
+                        this.init()
+                    }
+                })
+        }
+    }
 }
 
 

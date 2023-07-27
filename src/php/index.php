@@ -1,11 +1,18 @@
 <?php
 // use absolute path of directory i.e: '/var/www/folder' or $_SERVER['DOCUMENT_ROOT'].'/folder'
 $root_path = $_SERVER['DOCUMENT_ROOT'];
-// $root_path ="E:";
+
+
+// provide Auth username & password
+$auth = array(
+    'username' => 'faiez',
+    'password' => '$2y$10$S3akzb3kHClIM8bIChTJsucGMpmnVHaR.yu.s5L5MitUIt2RkSE26' // or getHash('some password')
+);
+$isAuth = false; // set to true to enable auth
 
 // Read Mode Only
 // set to true if want to disable delete and create options
-$read_only=false;
+$read_only = false;
 // Set Specific Rights
 $config = array(
     "allow_file_create" => true,
@@ -18,11 +25,47 @@ $config = array(
     "allow_read_file" => true,
 );
 
+function isAuth()
+{
+    global $isAuth, $auth;
+    if ($isAuth) {
+        if (isset($_GET['token']) ? $_GET['token'] == $auth['password'] : false) {
+            return true;
+        }
+        if (isset($_POST['token']) ? $_POST['token'] == $auth['password'] : false) {
+            return true;
+        }
+        return false;
+    } else {
+        return true;
+    }
 
+}
+function getHash($pwd)
+{
+    return password_hash($pwd, PASSWORD_DEFAULT);
+}
+function matchHash($pwd, $hashed_pass)
+{
+    return password_verify($pwd, $hashed_pass) ? true : false;
+}
+
+if (isset($_POST["login"]) && isset($_POST["username"]) && isset($_POST["password"])) {
+    if ($_POST['username'] == $auth['username'] && matchHash($_POST['password'], $auth['password'])) {
+        return response(200, "Success", [
+            'token' => $auth['password'],
+            'username' => $auth['username']
+        ]);
+    } else {
+        return response(400, "Failed", [
+            'error' => 'Invalid Credentials'
+        ]);
+    }
+}
 // to get a video file preview 
-if(isset($_GET["vid"])){
+if (isset($_GET["vid"])) {
     $file = $_GET["vid"];
-    if(file_exists($file)){
+    if (file_exists($file)) {
         header('Content-Description: File Transfer');
         header('Content-Type: application/octet-stream');
         header('Content-Transfer-Encoding: binary');
@@ -30,12 +73,12 @@ if(isset($_GET["vid"])){
         header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
         header('Pragma: public');
         header('Content-Disposition: attachment; filename=' . basename($file));
-        if(filesize($file) > 1220497){
-            header('Content-Length: 1220497' );
+        if (filesize($file) > 1220497) {
+            header('Content-Length: 1220497');
             readfile($file);
             exit;
-        }else{
-            header('Content-Length: '.filesize($file) );
+        } else {
+            header('Content-Length: ' . filesize($file));
             readfile($file);
             exit;
         }
@@ -45,7 +88,6 @@ if(isset($_GET["vid"])){
 // Download file
 if (isset($_GET["dw"])) {
     $file = $_GET["dw"];
-
     if (file_exists($file)) {
         header('Content-Description: File Transfer');
         header('Content-Type: application/octet-stream');
@@ -65,6 +107,7 @@ if (isset($_GET["dw"])) {
             readfile($zipPath);
             exit;
         } else {
+
             header('Content-Disposition: attachment; filename=' . basename($file));
             header('Content-Length: ' . filesize($file));
             ob_clean();
@@ -74,105 +117,117 @@ if (isset($_GET["dw"])) {
         }
     }
 }
+if (isset($_GET["img"])) {
+    header('Content-type: image/jpeg');
+    echo readfile($_GET['img']);
+}
 if (isset($_POST["getRoot"])) {
-    if($config["allow_read_folder"]){
+    if (isAuth() && $config["allow_read_folder"]) {
         return response(200, "Ok", $root_path);
+    }else{
+        return response(300, "Failed", [
+            'error' => 'Either User Need Authentications or You dont have Permission To Access this Method'
+        ]);
     }
 }
 if (isset($_POST["getFolder"]) && isset($_POST["path"]) && isset($_POST["rename"])) {
-    if($config["allow_folder_rename"]){
-    if(!$read_only){
-        if (rename($_POST["getFolder"], $_POST["path"])) {
-            return response(200, "Ok", "saved");
+    if (isAuth() && $config["allow_folder_rename"]) {
+        if (!$read_only) {
+            if (rename($_POST["getFolder"], $_POST["path"])) {
+                return response(200, "Ok", "saved");
+            } else {
+                return response(300, "Failed", "Failed To Rename");
+            }
         } else {
-            return response(300, "Failed", "Failed To Rename");
+            return response(300, "Failed", "currently in Read Only Mode Cannot Rename File/folder");
         }
-    }else{
-        return response(300, "Failed", "currently in Read Only Mode Cannot Rename File/folder");
     }
- }
 }
 if (isset($_POST["getFolder"]) && isset($_POST["path"])) {
     $current_path = $_POST["path"];
     $dir_files = array();
-    if($config["allow_read_folder"]){
-    if (is_dir($_POST["path"])) {
-        if ($dh = opendir($_POST["path"])) {
-            while (($file = readdir($dh)) !== false) {
-                if ($file !== ".." && $file !== ".") {
-                    $ext = pathinfo($file, PATHINFO_EXTENSION);
+    if (isAuth() && $config["allow_read_folder"]) {
+        if (is_dir($_POST["path"])) {
+            if ($dh = opendir($_POST["path"])) {
+                while (($file = readdir($dh)) !== false) {
+                    if ($file !== ".." && $file !== ".") {
+                        $ext = pathinfo($file, PATHINFO_EXTENSION);
+                        $is_Image_dim = getImageDimensions($current_path . "/" . $file);
 
-                    array_push($dir_files, [
-                        "name" => $file,
-                        "ext" => $ext,
-                        "is_dir" => is_dir($current_path . "/" . $file),
-                        "size" => getHumanReadableSize(filesize($current_path . "/" . $file)),
-                        "modified_time" => date("F d Y H:i:s", filemtime($current_path . "/" . $file)),
-                        "perm" => substr(sprintf("%o", fileperms($current_path . "/" . $file)), -4),
-                        "download_url" => "./src/php/index.php?dw=" . $current_path . "/" . $file,
-                        "dimension" => getImageDimensions($current_path . "/" . $file),
-                        "path" => $current_path . "/" . $file,
-                    ]);
+                        array_push($dir_files, [
+                            "name" => $file,
+                            "ext" => $ext,
+                            "is_dir" => is_dir($current_path . "/" . $file),
+                            "size" => getHumanReadableSize(filesize($current_path . "/" . $file)),
+                            "modified_time" => date("F d Y H:i:s", filemtime($current_path . "/" . $file)),
+                            "perm" => substr(sprintf("%o", fileperms($current_path . "/" . $file)), -4),
+                            "download_url" => "./src/php/index.php?" . ($is_Image_dim ? "img" : "dw") . "=" . $current_path . "/" . urlencode($file),
+                            "dimension" => $is_Image_dim,
+                            "path" => $current_path . "/" . $file,
+                        ]);
+                    }
                 }
             }
+            return response(200, "Ok", $dir_files);
+        } else {
+            return response(300, "Not A folder", $_POST["path"]);
         }
-        return response(200, "Ok", $dir_files);
-    } else {
-        return response(300, "Not A folder", $_POST["path"]);
     }
-   }
 }
 if (isset($_POST["create"]) && isset($_POST["folder"]) && isset($_POST["path"])) {
-   if($config["allow_folder_create"]){
-       if(!$read_only){
-           
-           if (mkdir($_POST["path"] . "/" . $_POST["folder"])) {
-               return response(200, "Ok", $_POST["folder"] . " Created");
+    if (isAuth() && $config["allow_folder_create"]) {
+        if (!$read_only) {
+
+            if (mkdir($_POST["path"] . "/" . $_POST["folder"])) {
+                return response(200, "Ok", $_POST["folder"] . " Created");
             } else {
                 return response(300, "Ok", $_POST["folder"] . " Failed to create!");
             }
-        }else{
+        } else {
             return response(300, "Failed", "Failed To create currently in read only mode");
         }
     }
 }
 if (isset($_POST["create"]) && isset($_POST["path"]) && isset($_POST["data"])) {
-    if($config["allow_file_create"]){
-    if(!$read_only){
-        saveFile($_POST["path"], json_decode($_POST["data"]));
-        response(200, "Ok", getFile($_POST["path"]));
-    }else{
-        return response(300, "Failed", "Failed To Create Currently in Read only mode");
+    if (isAuth() && $config["allow_file_create"]) {
+        if (!$read_only) {
+            saveFile($_POST["path"], json_decode($_POST["data"]));
+            response(200, "Ok", getFile($_POST["path"]));
+        } else {
+            return response(300, "Failed", "Failed To Create Currently in Read only mode");
+        }
     }
 }
-}
 if (isset($_POST["get"]) && isset($_POST["path"])) {
-    if($config["allow_read_file"]){
+    if (isAuth() && $config["allow_read_file"]) {
         response(200, "Ok", getFile($_POST["path"]));
     }
 }
 if (isset($_POST["save"]) && isset($_POST["path"]) && isset($_POST["data"])) {
-   if($config["allow_file_create"]){
-       if(!$read_only){
-           saveFile($_POST["path"], $_POST["data"]);
-           response(200, "Ok", getFile($_POST["path"]));
-        }else{
+    if (isAuth() && $config["allow_file_create"]) {
+        if (!$read_only) {
+            saveFile($_POST["path"], $_POST["data"]);
+            response(200, "Ok", getFile($_POST["path"]));
+        } else {
             return response(300, "Failed", "Failed To save curently in read only mode");
         }
     }
 }
 if (isset($_POST["remove"]) && isset($_POST["path"])) {
-  if($config["allow_file_delete"]){
-      if(!$read_only){      
-          if (deleteDirectory($_POST["path"])) {
-              response(200, "Ok", "Delete failed");
+    if (isAuth() && $config["allow_file_delete"]) {
+        if (!$read_only) {
+            if (deleteDirectory($_POST["path"])) {
+                response(200, "Ok", "Delete failed");
             } else {
                 response(300, "Ok", "Delete failed");
             }
-        }else{
+        } else {
             return response(300, "Failed", "Failed To delete currently in read only mode");
-        } 
+        }
     }
+}
+if(isset($_POST['isAuthRequired'])){
+    response(200, "Ok", $isAuth);
 }
 
 
