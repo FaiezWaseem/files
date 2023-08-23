@@ -50,6 +50,67 @@ function matchHash($pwd, $hashed_pass)
     return password_verify($pwd, $hashed_pass) ? true : false;
 }
 
+/**
+ *  will be using this temporarily for mobile file upload
+ */
+if(isset($_FILES['file_attachment']['name'])){
+    if(!empty($_FILES['file_attachment']['name']))
+    {
+      $target_dir = $_GET['p'].'/';
+      if (!file_exists($target_dir))
+      {
+        mkdir($target_dir, 0777);
+      }
+      $target_file =
+        $target_dir . basename($_FILES["file_attachment"]["name"]);
+      $imageFileType = 
+        strtolower(pathinfo($target_file,PATHINFO_EXTENSION));
+      // Check if file already exists
+      if (file_exists($target_file)) {
+        echo json_encode(
+           array(
+             "status" => 0,
+             "data" => array()
+             ,"msg" => "Sorry, file already exists."
+           )
+        );
+        die();
+      }
+      // Check file size
+      if ($_FILES["file_attachment"]["size"] > 70000000) {
+        echo json_encode(
+           array(
+             "status" => 0,
+             "data" => array(),
+             "msg" => "Sorry, your file is too large."
+           )
+         );
+        die();
+      }
+      if (
+        move_uploaded_file(
+          $_FILES["file_attachment"]["tmp_name"], $target_file
+        )
+      ) {
+        echo json_encode(
+          array(
+            "status" => 1,
+            "data" => $_GET['p'],
+            "msg" => "The file " . 
+                     basename( $_FILES["file_attachment"]["name"]) .
+                     " has been uploaded."));
+      } else {
+        echo json_encode(
+          array(
+            "status" => 0,
+            "data" => array(),
+            "msg" => "Sorry, there was an error uploading your file."
+          )
+        );
+      }
+    }
+}
+
 if (isset($_POST["login"]) && isset($_POST["username"]) && isset($_POST["password"])) {
     if ($_POST['username'] == $auth['username'] && matchHash($_POST['password'], $auth['password'])) {
         return response(200, "Success", [
@@ -161,7 +222,7 @@ if (isset($_POST["getFolder"]) && isset($_POST["path"])) {
                             "size" => getHumanReadableSize(filesize($current_path . "/" . $file)),
                             "modified_time" => date("F d Y H:i:s", filemtime($current_path . "/" . $file)),
                             "perm" => substr(sprintf("%o", fileperms($current_path . "/" . $file)), -4),
-                            "download_url" => "./src/php/index.php?" . ($is_Image_dim ? "img" : "dw") . "=" . $current_path . "/" . urlencode($file),
+                            "download_url" => "/src/php/index.php?" . ($is_Image_dim ? "img" : "dw") . "=" . $current_path . "/" . urlencode($file),
                             "dimension" => $is_Image_dim,
                             "path" => $current_path . "/" . $file,
                         ]);
