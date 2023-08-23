@@ -459,8 +459,8 @@ const initjs = {
                 // Update Context Menu Header with the selected file name
                 document.getElementById("file-dropdown-header").innerHTML = components.contextHeader(this.selectedFile.name)
                 // Change the download url to current selected file
-                document.querySelector("[data-lang='filedownload']").href = this.selectedFile.download_url
-                document.querySelector("[data-lang='file-copy-link']").href = this.selectedFile.download_url
+                document.querySelector("[data-lang='filedownload']").href = '.'+this.selectedFile.download_url
+                document.querySelector("[data-lang='file-copy-link']").href = '.'+this.selectedFile.download_url
                 document.querySelector("[data-lang='filedownload']").setAttribute("download", this.selectedFile.name)
                 // Files/Folder Info  Modal on Close clicked
                 document.querySelector(`[data-lang="close"]`).onclick = () => {
@@ -709,7 +709,7 @@ const initjs = {
 
             upMaxSize: '9216', //Upload file size, unit M, no setting no limit supported 9GB
 
-            upUrl: './src/php/file.php?p=' + this.currentPath, //File upload interface
+            upUrl: './index.php?p=' + this.currentPath, //File upload interface
 
             //The interface returns a result callback, which is judged according to the
             // data returned by the result, and can return a string or json for judgment processing

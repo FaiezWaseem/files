@@ -185,4 +185,4 @@ class db {
     }
 }
 
-const mydb = new db("./src/php/index.php");
+const mydb = new db("index.php");

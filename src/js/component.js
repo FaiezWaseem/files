@@ -36,7 +36,7 @@ let components = {
         <a  target="_blank" class="files-a files-a-img files-a-loaded" style="--ratio: ${ratio}; opacity: 1;" data-name="${item.name}">
         <img class="files-img" 
           width="${item.dimension.width}" height="${item.dimension.height}"
-          src="${item.download_url}"
+          src=".${item.download_url}"
           loading="lazy"
           data-item='${JSON.stringify(item)}' onclick="initjs.openFileInfoModal(this)" 
           >
@@ -95,8 +95,8 @@ let components = {
      data-item='${JSON.stringify(item)}' onclick="initjs.openFileInfoModal(this)">
         <path class="svg-path-play" d="M8,5.14V19.14L19,12.14L8,5.14Z"></path>
     </svg><video class="files-img playvideo"
-        data-src="${item.download_url}"
-        play-src="${item.download_url.replace("dw", "vid")}"
+        data-src=".${item.download_url}"
+        play-src=".${item.download_url.replace("dw", "vid")}"
         width="480" height="320"
         src=""
         muted
@@ -673,7 +673,7 @@ let components = {
         initjs.readfile(selectedFile)
       } else if (videoExtensions(selectedFile.ext)) {
         document.querySelector(".modal-preview-dir").innerHTML = `
-        <video src="./src/php/Stream.php?path=${selectedFile.path}" controls style="width:100%;"></video>
+        <video src="./index.php?path=${selectedFile.path}" controls style="width:100%;"></video>
         `
       } else if (imageExtensions(selectedFile.ext)) {
         document.querySelector(".modal-preview-dir").innerHTML = `
