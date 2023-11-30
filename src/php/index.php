@@ -274,6 +274,24 @@ if (isset($_POST["save"]) && isset($_POST["path"]) && isset($_POST["data"])) {
         }
     }
 }
+if (isset($_POST["unzip"]) && isset($_POST["from"]) && isset($_POST["to"]) && isset($_POST["name"])) {
+    if (isAuth() && $config["allow_file_create"]) {
+        if (!$read_only) {
+            $zip = new ZipArchive;
+            $res = $zip->open($_POST["from"]);
+            if ($res === TRUE) {
+            $zip->extractTo($_POST["to"]."/".$_POST["name"]."/");
+            $zip->close();
+            response(200, "Ok", "Unzipped");
+        } else {
+                response(300, "Failed", "Failed To Unzipped");
+            }
+           
+        } else {
+            return response(300, "Failed", "Failed To Unzip in read only mode");
+        }
+    }
+}
 if (isset($_POST["remove"]) && isset($_POST["path"])) {
     if (isAuth() && $config["allow_file_delete"]) {
         if (!$read_only) {

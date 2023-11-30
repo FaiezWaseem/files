@@ -175,6 +175,26 @@ class db {
         const res = req.json()
         return res;
     }
+    async unzipFile(from , to , name) {
+        this.error({}, from , to , name)
+        let form = new FormData();
+        const isAuthRequired = Store.get('isAuthRequired') || null;
+        if(isAuthRequired){
+            form.append('token', Store.get('token'));
+        }
+        form.append('unzip', 'true');
+        form.append('from', from);
+        form.append('to', to);
+        form.append('name', name);
+        let options = {
+            method: 'POST',
+            body: form
+        };
+        const req = await fetch(this.path, options);
+        const res = req.json()
+        return res;
+    }
+
     error(data, path) {
         if (path == null) {
             throw ("Error : Function  : path parameter not present")

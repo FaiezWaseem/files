@@ -171,14 +171,14 @@ const initjs = {
     files: [],
     init: function () {
         // If no roothpath is defined will fetch from server
-        mydb.isAuthRequired().then(res =>{
-            localStorage.setItem('isAuthRequired' , res.data)
-            if(res.data){
+        mydb.isAuthRequired().then(res => {
+            localStorage.setItem('isAuthRequired', res.data)
+            if (res.data) {
                 const Auth = this.isAuthenticated();
                 if (Auth.isAuth) {
                     console.log(Auth.token)
                     if (this.rootPath === null) {
-        
+
                         this.setLoader(true)
                         mydb.rootPath().then(res => {
                             if (res.status === 200) {
@@ -202,10 +202,10 @@ const initjs = {
                         name: "Authentication",
                     })
                 }
-            }else{
+            } else {
                 localStorage.clear()
                 if (this.rootPath === null) {
-        
+
                     this.setLoader(true)
                     mydb.rootPath().then(res => {
                         if (res.status === 200) {
@@ -226,7 +226,7 @@ const initjs = {
                 }
             }
         })
-     
+
         // Open Modal To create new Folder
         document.querySelector(`[data-action="new_folder"]`).onclick = () => {
             this.hideAllMenusAndModal()
@@ -493,11 +493,40 @@ const initjs = {
                   </path>
                 </svg>${this.selectedFile.perm}
                     `
+
                 }
                 // Open Rename Modal
                 document.querySelector(`[data-lang="file-rename"]`).onclick = () => {
                     document.getElementById("modal-f").innerHTML = components.modal(this.selectedFile)
                     this.hideAllMenusAndModal()
+                }
+                document.querySelector(`[data-action="Unzip"]`).onclick = () => {
+                    console.log(this.selectedFile)
+                    if (this.selectedFile.ext === 'zip') {
+                        let separatorIndex = this.selectedFile.path.lastIndexOf('/');
+                        let directoryPath = this.selectedFile.path.substring(0, separatorIndex);
+
+                        let filePath = this.selectedFile.path;
+                        separatorIndex = filePath.lastIndexOf('/');
+                        let filenameWithExtension = filePath.substring(separatorIndex + 1);
+                        let filenameWithoutExtension = filenameWithExtension.slice(0, filenameWithExtension.lastIndexOf('.'));
+
+                        mydb.unzipFile(this.selectedFile.path, directoryPath, filenameWithoutExtension)
+                        .then(res => {
+                            if (res.status === 200) {
+                                this.getCurrentFolder();
+                                this.loadSideBar();
+                                this.loadFiles();
+                                this.selectedFile = null;
+                                this.hideAllMenusAndModal()
+                            } else if (res.status === 300) {
+                                alert(res.data)
+                            }
+                        })
+                    }else{
+                        alert('Not A Zip File')
+                    }
+
                 }
                 // On File context menu delete clicked , Delete the file
                 document.querySelector("[data-action='filedelete']").onclick = () => {

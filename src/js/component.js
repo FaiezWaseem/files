@@ -36,7 +36,7 @@ let components = {
         <a  target="_blank" class="files-a files-a-img files-a-loaded" style="--ratio: ${ratio}; opacity: 1;" data-name="${item.name}">
         <img class="files-img" 
           width="${item.dimension.width}" height="${item.dimension.height}"
-          src="${item.download_url}"
+          src=".${item.download_url}"
           loading="lazy"
           data-item='${JSON.stringify(item)}' onclick="initjs.openFileInfoModal(this)" 
           >
@@ -677,7 +677,7 @@ let components = {
         `
       } else if (imageExtensions(selectedFile.ext)) {
         document.querySelector(".modal-preview-dir").innerHTML = `
-        <img src="${window.location.href + selectedFile.download_url.slice(2)}" style="width:100%;height : 100%;" />
+        <img src="s${selectedFile.download_url.slice(2)}" style="width:100%;height : 100%;" />
         `
       } else {
         document.querySelector(".modal-preview-dir").innerHTML = `
@@ -715,5 +715,4 @@ let components = {
 
     }
   },
-
 }
